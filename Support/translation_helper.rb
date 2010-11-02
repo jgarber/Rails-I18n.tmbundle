@@ -79,9 +79,12 @@ class TranslationHelper
     return key, translation
   end
   
+  INSERTION_TYPES = {'h' => 'html', 'a' => 'haml', 's' => 'string', 'r' => 'ruby'}.freeze
+  
   def prompt_for_insertion_type
-    insertion_type = TextMate::UI.request_string(:title => 'Type', :prompt => 'Insert this as html, haml, string, or ruby?', :default => self.preferences[:last_insertion_type])
+    insertion_type = TextMate::UI.request_string(:title => 'Type', :prompt => 'Insert this as (h)tml, h(a)ml, (s)tring, or (r)uby?', :default => self.preferences[:last_insertion_type])
     # type = TextMate::UI.menu ["html","string","ruby", "haml"]
+    insertion_type = INSERTION_TYPES[insertion_type] if INSERTION_TYPES[insertion_type]
     self.preferences[:last_insertion_type] = insertion_type #unless insertion_type.blank?
     
     return insertion_type
@@ -111,15 +114,15 @@ class TranslationHelper
       arguments << ", :#{interpolation} => $#{count + 1}"
     end
     
-    case type
-      when 'html'
-        replacement = "<%=#{translation_method}(#{arguments}) %>"
-      when 'string'
+    case type.downcase
+      when 'h', 'html'
+        replacement = "<%= #{translation_method}(#{arguments}) %>"
+      when 's', 'string'
         replacement = "\#{#{translation_method}(#{arguments})}"
-      when 'haml'
-        replacement = "= #{translation_method}(#{arguments})"
-      else
+      when 'r', 'ruby'
         replacement = "#{translation_method}(#{arguments})"
+      when 'a', 'haml'
+        replacement = "= #{translation_method}(#{arguments})"
     end
   end
   
