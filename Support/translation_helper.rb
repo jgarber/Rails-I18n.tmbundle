@@ -116,13 +116,13 @@ class TranslationHelper
     
     case type.downcase
       when 'h', 'html'
-        replacement = "<%= #{translation_method}(#{arguments}) %>"
+        replacement = "<%= #{translation_method}(:#{arguments}) %>"
       when 's', 'string'
-        replacement = "\#{#{translation_method}(#{arguments})}"
+        replacement = "\#{#{translation_method}(:#{arguments})}"
       when 'r', 'ruby'
-        replacement = "#{translation_method}(#{arguments})"
+        replacement = "#{translation_method}(:#{arguments})"
       when 'a', 'haml'
-        replacement = "= #{translation_method}(#{arguments})"
+        replacement = "= #{translation_method}(:#{arguments})"
     end
   end
   
