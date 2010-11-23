@@ -59,7 +59,10 @@ class TranslationHelper
   def derive_key
     current_file = ENV['TM_FILEPATH'].gsub(CONFIG[:project_directory], '')
     if md = current_file.match(%r{app/(views|controllers)/(admin/[^/]+)/.*})
-      "#{md[2].gsub(%r{/}, '.')}.#{ENV['TM_SELECTED_TEXT'].gsub(/"|'/, '')}"
+      text = ENV['TM_SELECTED_TEXT'].dup
+      text.gsub!(/"|'/, '')
+      text.gsub!(/\s+/, ' ')
+      "#{md[2].gsub(%r{/}, '.')}.#{text}"
     else
       self.preferences[:last_key]
     end
@@ -119,7 +122,7 @@ class TranslationHelper
   
   def build_replacement_snippet(type, key, translation)
     arguments = "'#{key}'"
-    translation.scan(/\{\{(\w+)\}\}/).flatten.each_with_index do |interpolation, count|
+    translation.scan(/\%\{(\w+)\}/).flatten.each_with_index do |interpolation, count|
       arguments << ", :#{interpolation} => $#{count + 1}"
     end
     
