@@ -20,7 +20,7 @@ class TranslationHelper
     original_text = ENV['TM_SELECTED_TEXT'] || ""
     translation = original_text.gsub(/^(['"])(.+)(\1)$/, '\2')
         
-    key, translation = prompt_for_translation(self.preferences[:last_key], translation)
+    key, translation = prompt_for_translation(derive_key, translation)
     if key    
       self.preferences[:last_key] = key 
       insertion_type = prompt_for_insertion_type
@@ -55,6 +55,15 @@ class TranslationHelper
   end
     
   private
+  
+  def derive_key
+    current_file = ENV['TM_FILEPATH'].gsub(CONFIG[:project_directory], '')
+    if md = current_file.match(%r{app/(views|controllers)/(admin/[^/]+)/.*})
+      "#{md[2].gsub(%r{/}, '.')}.#{ENV['TM_SELECTED_TEXT'].gsub(/"|'/, '')}"
+    else
+      self.preferences[:last_key]
+    end
+  end
   
   def prompt_for_overwrite(current_value, new_value)
     overwrite = TextMate::UI.request_confirmation(:button1 => 'Overwrite', :button2 => 'Cancel', :title => 'You have already used this translation key',
