@@ -19,6 +19,7 @@ class TranslationHelper
   def add_translation
     original_text = ENV['TM_SELECTED_TEXT'] || ""
     translation = original_text.gsub(/^(['"])(.+)(\1)$/, '\2')
+    translation.gsub!(/(<%= |\#\{)(.*)( %>|\})/, '%{\2}')
         
     key, translation = prompt_for_translation(derive_key, translation)
     if key    
@@ -57,12 +58,18 @@ class TranslationHelper
   private
   
   def derive_key
-    current_file = ENV['TM_FILEPATH'].gsub(CONFIG[:project_directory], '')
-    if md = current_file.match(%r{app/(views|controllers)/(admin/[^/]+)/.*})
+    current_file    = ENV['TM_FILEPATH'].gsub(CONFIG[:project_directory], '')
+    views_re        = %r{app/views/(admin/[^/]+)/.*}
+    helpers_re      = %r{app/helpers/((admin/)?.*)_helper.rb}
+    controllers_re  = %r{app/controllers/((admin/)?.*)_controller.rb}
+    if md = current_file.match(views_re) || current_file.match(controllers_re) || current_file.match(helpers_re)
       text = ENV['TM_SELECTED_TEXT'].dup
       text.gsub!(/"|'/, '')
       text.gsub!(/\s+/, ' ')
-      "#{md[2].gsub(%r{/}, '.')}.#{text}"
+      text.gsub!(/(<%= |\#\{)(.*)( %>|\})/, '(\2)')
+      replacement = md[1]
+      replacement = 'admin.shared' if replacement == 'admin_area'
+      "#{replacement.gsub(%r{/}, '.')}.#{text}"
     else
       self.preferences[:last_key]
     end
@@ -121,20 +128,20 @@ class TranslationHelper
   end
   
   def build_replacement_snippet(type, key, translation)
-    arguments = "'#{key}'"
+    arguments = ":'#{key}'"
     translation.scan(/\%\{(\w+)\}/).flatten.each_with_index do |interpolation, count|
       arguments << ", :#{interpolation} => $#{count + 1}"
     end
     
     case type.downcase
       when 'h', 'html'
-        replacement = "<%= #{translation_method}(:#{arguments}) %>"
+        replacement = "<%= #{translation_method}(#{arguments}) %>"
       when 's', 'string'
-        replacement = "\#{#{translation_method}(:#{arguments})}"
+        replacement = "\#{#{translation_method}(#{arguments})}"
       when 'r', 'ruby'
-        replacement = "#{translation_method}(:#{arguments})"
+        replacement = "#{translation_method}(#{arguments})"
       when 'a', 'haml'
-        replacement = "= #{translation_method}(:#{arguments})"
+        replacement = "= #{translation_method}(#{arguments})"
     end
   end
   
