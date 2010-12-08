@@ -66,7 +66,7 @@ class TranslationHelper
       text = ENV['TM_SELECTED_TEXT'].dup
       text.gsub!(/"|'/, '')
       text.gsub!(/\s+/, ' ')
-      text.gsub!(/(<%= |\#\{)(.*)( %>|\})/, '(\2)')
+      text.gsub!(/(<%= |\#\{)([^{]+)( %>|\})/, '(\2)')
       replacement = md[1]
       replacement = 'admin.shared' if replacement == 'admin_area'
       "#{replacement.gsub(%r{/}, '.')}.#{text}"
@@ -178,11 +178,11 @@ class TranslationHelper
       (key.scan(/(?:I18n\.)?(?:(?:translate|t)\()(['"][\w\.-_]+['"])/)) rescue ""       
     end
     
-    translations = matches.flatten.inject([]) do |memo, keys|
-      arguments = eval('args_to_array(' + keys.to_s + ')')
+    translations = matches.flatten.inject([]) do |memo, translation_keys|
+      arguments = eval('args_to_array(' + translation_keys.to_s + ')')
       arguments.last.each { |k, v| arguments.last[k] = "**#{k}**" if v.nil? } if arguments.last.is_a?(Hash)
       translation = I18n.translate(*arguments) rescue "INVALID KEY"
-      memo << "#{keys} => #{translation}"
+      memo << "#{translation_keys} => #{translation}"
     end
     
     return translations.join("\n")
