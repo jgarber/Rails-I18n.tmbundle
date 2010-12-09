@@ -36,8 +36,8 @@ module TextMate
         command << ' --modal'          if options[:modal]
         command << ' --quiet'          if options[:quiet]
         command << ' --async-window'   if !options[:modal]
-        command << " --parameters #{e_sh parameters.to_plist}}" if parameters
-        command << " --defaults #{e_sh defaults.to_plist}}" if defaults
+        command << " --parameters #{e_sh parameters.to_plist}" if parameters
+        command << " --defaults #{e_sh defaults.to_plist}" if defaults
         command << " #{e_sh nib_path}"
 
         @results = OSX::PropertyList::load `#{command}`
@@ -119,6 +119,12 @@ class YAMLStore
   
   def []=(key, value, force = false)
     raise Exceptions::DuplicateKey if self[key] && !force
+    
+    if ENV['TM_RUBY_ONE_NINE']
+      command = %Q{#{ENV['TM_RUBY_ONE_NINE']} "#{ENV['TM_BUNDLE_SUPPORT']}/one_nine_orders_hashes.rb" "#{locale_file_path}" "#{key}" "#{value}"}
+      %x{#{command}}
+      return value
+    end
 
     base_key = self.locale.to_s
     keys = [base_key] + key.split('.')
