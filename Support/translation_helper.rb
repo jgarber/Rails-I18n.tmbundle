@@ -128,9 +128,9 @@ class TranslationHelper
   end
   
   def build_replacement_snippet(type, key, translation)
-    arguments = ":'#{key}'"
+    arguments = key.to_sym.inspect
     translation.scan(/\%\{(\w+)\}/).flatten.each_with_index do |interpolation, count|
-      arguments << ", :#{interpolation} => $#{count + 1}"
+      arguments << ", #{interpolation.to_sym.inspect} => $#{count + 1}"
     end
     
     case type.downcase
