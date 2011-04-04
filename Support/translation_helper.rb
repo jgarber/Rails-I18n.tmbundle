@@ -59,7 +59,7 @@ class TranslationHelper
   
   def derive_key
     current_file    = ENV['TM_FILEPATH'].gsub(CONFIG[:project_directory], '')
-    views_re        = %r{app/views/(admin/[^/]+)/.*}
+    views_re        = %r{app/views/((admin/)?[^/]+)/.*}
     helpers_re      = %r{app/helpers/((admin/)?.*)_helper.rb}
     controllers_re  = %r{app/controllers/((admin/)?.*)_controller.rb}
     if md = current_file.match(views_re) || current_file.match(controllers_re) || current_file.match(helpers_re)
